@@ -1,0 +1,271 @@
+/* ======= RESET & BASE ======= */
+body {
+  margin: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  font-size: 14px;
+}
+
+.hidden {
+  display: none;
+}
+
+h1, h2 {
+  margin: 0 0 12px;
+  color: #0c3c72;
+}
+
+/* ======= LAYOUT ======= */
+.dashboard-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 220px;
+  background-color: #1565c0;
+  color: white;
+  padding: 20px;
+}
+
+.sidebar h2 {
+  font-size: 20px;
+  margin-bottom: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar li {
+  margin: 12px 0;
+  cursor: pointer;
+}
+
+.main-content {
+  flex-grow: 1;
+  padding: 30px 40px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.topbar .usuario {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.topbar button {
+  padding: 6px 14px;
+  background-color: #0074d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background-color: #005fa3;
+}
+
+/* ======= FORMULARIO ======= */
+.formulario-nuevo-estudio {
+  background-color: #ffffff;
+  border: 1px solid #cbd5e0;
+  border-left: 6px solid #0c3c72;
+  padding: 18px;
+  border-radius: 6px;
+  margin-bottom: 30px;
+}
+
+.formulario .fila-formulario {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.formulario label {
+  flex: 1 1 45%;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  color: #333;
+}
+
+.formulario input {
+  margin-top: 4px;
+  padding: 6px;
+  font-size: 13px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.formulario button {
+  margin-top: 10px;
+  background-color: #0074d9;
+  color: white;
+  padding: 6px 14px;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.formulario button:hover {
+  background-color: #005fa3;
+}
+
+/* ======= BUSCADOR ======= */
+.busqueda-panel {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.busqueda-panel input {
+  padding: 6px;
+  font-size: 13px;
+  width: 200px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.busqueda-panel button {
+  padding: 6px 10px;
+  font-size: 13px;
+  background-color: #0074d9;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.busqueda-panel button:hover {
+  background-color: #005fa3;
+}
+
+#mensajeBusqueda {
+  font-size: 13px;
+  color: #555;
+}
+
+/* ======= TARJETAS ======= */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background-color: white;
+  border: 1px solid #cbd5e0;
+  border-left: 6px solid #0c3c72;
+  border-radius: 6px;
+  padding: 14px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.card.historial {
+  border-left-color: #28a745;
+  background-color: #f8f9fa;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 15px;
+  color: #0c3c72;
+}
+
+.badge {
+  padding: 3px 8px;
+  font-size: 12px;
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+.badge.revision {
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffeeba;
+}
+
+.badge.corregido {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+.badge.liberado {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.logo-empresa img {
+  width: 100px !important;
+  height: auto !important;
+  max-width: 100% !important;
+  display: block;
+  object-fit: contain;
+}
+
+.logo-empresa img {
+  width: 10px;      /* Fuerza tamaño fijo */
+  height: 10;
+  object-fit: contain;
+}
+
+#logo-qehs {
+  width: 100px !important;
+  height: auto !important;
+  max-width: 10% !important;
+  display: block;
+  object-fit: contain;
+}
+
+.boton-actualizar {
+  background-color: #1976d2 !important;
+  color: white !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s;
+}
+
+.boton-actualizar:hover {
+  background-color: #0d47a1 !important;
+}
+
+.boton-eliminar {
+  background-color: #e53935 !important;
+  color: white !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  border: none !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s;
+}
+
+.boton-eliminar:hover {
+  background-color: #b71c1c !important;
+}
+

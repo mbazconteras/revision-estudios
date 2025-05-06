@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel de Revisión | QEHS</title>
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+  <script defer src="main-realtime.js"></script>
+  <style>
+    .sidebar svg {
+      width: 18px;
+      height: 18px;
+      margin-right: 8px;
+      vertical-align: middle;
+      fill: white;
+    }
+    .sidebar li {
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+		<div style="text-align: center; padding: 16px 0; border-bottom: 1px solid rgba(255,255,255,0.2);">
+  <img src="logo.png" width="200" style="display: block; margin: 0 auto;" alt="Logo QEHS" />
+</div>
+
+
+      <h2>Dashboard</h2>
+      <nav>
+        <ul>
+          <li id="btnVerBuscar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M15 11a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+            Buscar
+          </li>
+          <li id="btnVerPublicar">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
+            Publicar
+          </li>
+          <li id="btnVerPendientes">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16" /></svg>
+            Pendientes
+          </li>
+          <li id="btnVerHistorial">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+            Historial
+          </li>
+        </ul>
+      </nav>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+      <header class="topbar">
+        <div class="usuario">QEHS | Revisión de Estudios</div>
+      </header>
+
+      <!-- Formulario -->
+      <section id="seccion-formulario" class="formulario-nuevo-estudio hidden">
+        <h2>Nuevo Estudio</h2>
+        <form id="form-nuevo-estudio" class="formulario">
+          <div class="fila-formulario">
+            <label>Nombre del estudio:
+              <input type="text" id="nombre" required />
+            </label>
+            <label>ID del estudio (13 dígitos):
+              <input type="text" id="estudio-id" maxlength="13" pattern="\d{13}" required />
+            </label>
+          </div>
+          <div class="fila-formulario">
+            <label>Enlace a OneDrive:
+              <input type="url" id="enlace" required />
+            </label>
+            <label>Publicado por:
+              <input type="text" id="encargado" required />
+            </label>
+          </div>
+          <button type="submit">Agregar Estudio</button>
+        </form>
+      </section>
+
+      <!-- Buscador -->
+      <section id="busqueda-panel" class="busqueda-panel hidden">
+        <label for="buscar-id">Buscar por ID:</label>
+        <input type="text" id="buscar-id" placeholder="Ej. 1234567890123" maxlength="13" />
+        <button id="btnBuscarID">Buscar</button>
+        <button id="btnVerTodo" style="display:none;">🔁 Ver todo</button>
+        <span id="mensajeBusqueda"></span>
+      </section>
+
+      <!-- Panel de pendientes -->
+      <section id="panel-pendientes" class="hidden">
+        <h2>Estudios Pendientes</h2>
+        <div id="estudios-pendientes" class="cards-grid"></div>
+      </section>
+
+      <!-- Panel historial -->
+      <section id="panel-historial" class="hidden">
+        <h2>Historial de Estudios Revisados</h2>
+        <div id="historial-estudios" class="cards-grid"></div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const seccionFormulario = document.getElementById("seccion-formulario");
+      const busquedaPanel = document.getElementById("busqueda-panel");
+      const panelPendientes = document.getElementById("panel-pendientes");
+      const panelHistorial = document.getElementById("panel-historial");
+
+      const ocultarTodo = () => {
+        seccionFormulario.classList.add("hidden");
+        busquedaPanel.classList.add("hidden");
+        panelPendientes.classList.add("hidden");
+        panelHistorial.classList.add("hidden");
+      };
+
+      document.getElementById("btnVerBuscar").addEventListener("click", () => {
+        ocultarTodo();
+        busquedaPanel.classList.remove("hidden");
+      });
+
+      document.getElementById("btnVerPublicar").addEventListener("click", () => {
+        ocultarTodo();
+        seccionFormulario.classList.remove("hidden");
+      });
+
+      document.getElementById("btnVerPendientes").addEventListener("click", () => {
+        ocultarTodo();
+        panelPendientes.classList.remove("hidden");
+      });
+
+      document.getElementById("btnVerHistorial").addEventListener("click", () => {
+        ocultarTodo();
+        panelHistorial.classList.remove("hidden");
+      });
+    });
+  </script>
+</body>
+</html>
