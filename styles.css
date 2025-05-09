@@ -16,7 +16,6 @@ h1, h2 {
   color: #0c3c72;
 }
 
-/* ======= LAYOUT ======= */
 .dashboard-layout {
   display: flex;
   min-height: 100vh;
@@ -61,20 +60,6 @@ h1, h2 {
   font-size: 16px;
 }
 
-.topbar button {
-  padding: 6px 14px;
-  background-color: #0074d9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.topbar button:hover {
-  background-color: #005fa3;
-}
-
-/* ======= FORMULARIO ======= */
 .formulario-nuevo-estudio {
   background-color: #ffffff;
   border: 1px solid #cbd5e0;
@@ -118,11 +103,6 @@ h1, h2 {
   cursor: pointer;
 }
 
-.formulario button:hover {
-  background-color: #005fa3;
-}
-
-/* ======= BUSCADOR ======= */
 .busqueda-panel {
   display: flex;
   gap: 12px;
@@ -131,34 +111,6 @@ h1, h2 {
   margin-bottom: 20px;
 }
 
-.busqueda-panel input {
-  padding: 6px;
-  font-size: 13px;
-  width: 200px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-}
-
-.busqueda-panel button {
-  padding: 6px 10px;
-  font-size: 13px;
-  background-color: #0074d9;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.busqueda-panel button:hover {
-  background-color: #005fa3;
-}
-
-#mensajeBusqueda {
-  font-size: 13px;
-  color: #555;
-}
-
-/* ======= TARJETAS ======= */
 .cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -177,6 +129,11 @@ h1, h2 {
 .card.historial {
   border-left-color: #28a745;
   background-color: #f8f9fa;
+}
+
+.card.impreso {
+  border-left-color: #e67e22;
+  background-color: #fff6ec;
 }
 
 .card-header {
@@ -217,55 +174,36 @@ h1, h2 {
   border: 1px solid #c3e6cb;
 }
 
-.logo-empresa img {
-  width: 100px !important;
-  height: auto !important;
-  max-width: 100% !important;
-  display: block;
-  object-fit: contain;
-}
-
-.logo-empresa img {
-  width: 10px;      /* Fuerza tamaño fijo */
-  height: 10;
-  object-fit: contain;
-}
-
-#logo-qehs {
-  width: 100px !important;
-  height: auto !important;
-  max-width: 10% !important;
-  display: block;
-  object-fit: contain;
+.badge.impreso {
+  background-color: #fbe9e7;
+  color: #e65100;
+  border: 1px solid #ffccbc;
 }
 
 .boton-actualizar {
-  background-color: #1976d2 !important;
-  color: white !important;
-  padding: 6px 12px !important;
-  font-size: 13px !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s;
+  background-color: #1976d2;
+  color: white;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .boton-actualizar:hover {
-  background-color: #0d47a1 !important;
+  background-color: #0d47a1;
 }
 
 .boton-eliminar {
-  background-color: #e53935 !important;
-  color: white !important;
-  padding: 6px 12px !important;
-  font-size: 13px !important;
-  border: none !important;
-  border-radius: 4px !important;
-  cursor: pointer !important;
-  transition: background-color 0.2s;
+  background-color: #e53935;
+  color: white;
+  padding: 6px 12px;
+  font-size: 13px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
 .boton-eliminar:hover {
-  background-color: #b71c1c !important;
+  background-color: #b71c1c;
 }
-

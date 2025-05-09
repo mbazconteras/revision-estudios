@@ -13,10 +13,13 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
 function estadoBadge(estado) {
-  if (estado === "Para Revisión") return "badge revision";
-  if (estado === "Corregido") return "badge corregido";
-  if (estado === "Liberado para impresión") return "badge liberado";
-  return "badge";
+  const clases = {
+    "Para Revisión": "badge revision",
+    "Corregido": "badge corregido",
+    "Liberado para impresión": "badge liberado",
+    "Impreso": "badge impreso"
+  };
+  return clases[estado] || "badge";
 }
 
 function formatFecha(fechaISO) {
@@ -31,150 +34,160 @@ function formatFecha(fechaISO) {
   });
 }
 
-function mostrarEstudios() {
-  const pendientes = document.getElementById("estudios-pendientes");
-  const historial = document.getElementById("historial-estudios");
+function renderPanel(estudios, contenedorId, tipo) {
+  const contenedor = document.getElementById(contenedorId);
+  contenedor.innerHTML = "";
 
-  db.ref("estudios").once("value", (snapshot) => {
-    pendientes.innerHTML = "";
-    historial.innerHTML = "";
+  estudios.forEach(({ id, data }) => {
+    const div = document.createElement("div");
+    div.className = `card ${tipo}`;
 
-    const items = [];
-    snapshot.forEach((child) => {
-      items.push({ id: child.key, data: child.val() });
-    });
-
-    // Ordenamos por fechaLiberado (más nuevo primero)
-    items.sort((a, b) => {
-      const fa = a.data.fechaLiberado || "1970-01-01";
-      const fb = b.data.fechaLiberado || "1970-01-01";
-      return new Date(fb) - new Date(fa);
-    });
-
-    items.forEach(({ id, data }) => {
-      const div = document.createElement("div");
-      div.className = "card " + (data.estado === "Liberado para impresión" ? "historial" : "pendiente");
-
-      div.innerHTML = `
-        <div class="card-header">
-          <div class="card-title">${data.nombre}</div>
-          <div class="${estadoBadge(data.estado)}">${data.estado}</div>
+    div.innerHTML = `
+      <div class="card-header">
+        <div class="card-title">${data.nombre}</div>
+        <div class="${estadoBadge(data.estado)}">${data.estado}</div>
+      </div>
+      <div><a href="${data.enlace}" target="_blank">Ver Estudio</a></div>
+      <div style="font-size: 12px; color: #666;">ID: ${data.idEstudio || "–"}</div>
+      <div style="margin-top: 4px; font-size: 13px; color: #555;">Publicado por: ${data.encargado}</div>
+      <div class="fechas-info">
+        <p>📅 Sometido: ${formatFecha(data.fechaSometido)}</p>
+        ${data.fechaLiberado ? `<p>✅ Liberado: ${formatFecha(data.fechaLiberado)}</p>` : ""}
+        ${data.fechaImpreso ? `<p>🖨️ Impreso: ${formatFecha(data.fechaImpreso)}</p>` : ""}
+      </div>
+      <textarea rows="2" placeholder="Correcciones...">${data.correcciones || ""}</textarea>
+      <div class="card-actions">
+        <div>
+          <select>
+            <option ${data.estado === "Para Revisión" ? "selected" : ""}>Para Revisión</option>
+            <option ${data.estado === "Corregido" ? "selected" : ""}>Corregido</option>
+            <option ${data.estado === "Liberado para impresión" ? "selected" : ""}>Liberado para impresión</option>
+            <option ${data.estado === "Impreso" ? "selected" : ""}>Impreso</option>
+          </select>
+          <button class="boton-actualizar">Actualizar</button>
         </div>
-        <div><a href="${data.enlace}" target="_blank">Ver Estudio</a></div>
-        <div style="font-size: 12px; color: #666;">ID: ${data.idEstudio || "–"}</div>
-        <div style="margin-top: 4px; font-size: 13px; color: #555;">Publicado por: ${data.encargado}</div>
-        <div class="fechas-info" style="margin-top: 8px; font-size: 13px; color: #444;">
-          <p>📅 Sometido: ${formatFecha(data.fechaSometido)}</p>
-          ${data.estado === "Liberado para impresión" && data.fechaLiberado
-            ? `<p>✅ Liberado: ${formatFecha(data.fechaLiberado)}</p>` : ""}
-        </div>
-        <textarea rows="2" placeholder="Correcciones...">${data.correcciones || ""}</textarea>
-        <div class="card-actions">
-          <div>
-            <select>
-              <option ${data.estado === "Para Revisión" ? "selected" : ""}>Para Revisión</option>
-              <option ${data.estado === "Corregido" ? "selected" : ""}>Corregido</option>
-              <option ${data.estado === "Liberado para impresión" ? "selected" : ""}>Liberado para impresión</option>
-            </select>
-            <button class="boton-actualizar">Actualizar</button>
-          </div>
-          <button class="boton-eliminar">Eliminar</button>
-        </div>
-      `;
+        <button class="boton-eliminar">Eliminar</button>
+      </div>
+    `;
 
-      const textarea = div.querySelector("textarea");
-      const actions = div.querySelector(".card-actions");
-      const btn = div.querySelector(".boton-actualizar");
-      const botonEliminar = div.querySelector(".boton-eliminar");
+    const textarea = div.querySelector("textarea");
+    const btnActualizar = div.querySelector(".boton-actualizar");
+    const btnEliminar = div.querySelector(".boton-eliminar");
 
-      if (data.estado === "Liberado para impresión") {
-        actions.remove();
-        textarea.setAttribute("readonly", "true");
-        textarea.style.backgroundColor = "#f0f0f0";
-        historial.appendChild(div);
-      } else {
-        btn.addEventListener("click", () => {
-          const nuevoEstado = div.querySelector("select").value;
-          const nuevasCorrecciones = textarea.value;
+    if (tipo === "impreso") {
+      div.querySelector(".card-actions").remove();
+      textarea.setAttribute("readonly", "true");
+      textarea.style.backgroundColor = "#f0f0f0";
+    } else {
+      btnActualizar.addEventListener("click", () => {
+        const nuevoEstado = div.querySelector("select").value;
+        const nuevasCorrecciones = textarea.value;
+        const actualizaciones = {
+          estado: nuevoEstado,
+          correcciones: nuevasCorrecciones
+        };
 
-          const actualizaciones = {
-            estado: nuevoEstado,
-            correcciones: nuevasCorrecciones
-          };
+        if (nuevoEstado === "Liberado para impresión" && !data.fechaLiberado) {
+          actualizaciones.fechaLiberado = new Date().toISOString();
+        }
+        if (nuevoEstado === "Impreso" && !data.fechaImpreso) {
+          actualizaciones.fechaImpreso = new Date().toISOString();
+        }
 
-          if (nuevoEstado === "Liberado para impresión" && !data.fechaLiberado) {
-            actualizaciones.fechaLiberado = new Date().toISOString();
-          }
+        db.ref("estudios/" + id).update(actualizaciones).then(() => mostrarEstudios());
+      });
 
-          db.ref("estudios/" + id).update(actualizaciones).then(() => mostrarEstudios());
-        });
+      btnEliminar.addEventListener("click", () => {
+        if (confirm(`¿Eliminar el estudio "${data.nombre}"?`)) {
+          db.ref("estudios/" + id).remove().then(() => mostrarEstudios());
+        }
+      });
+    }
 
-        botonEliminar.addEventListener("click", () => {
-          const confirmar = confirm(`¿Deseas eliminar el estudio "${data.nombre}"?`);
-          if (confirmar) {
-            db.ref("estudios/" + id).remove().then(() => mostrarEstudios());
-          }
-        });
-
-        pendientes.appendChild(div);
-      }
-    });
+    contenedor.appendChild(div);
   });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-  // Agregar nuevo estudio
+function mostrarEstudios() {
+  db.ref("estudios").once("value", (snapshot) => {
+    const pendientes = [], historial = [], impresos = [];
+
+    snapshot.forEach(child => {
+      const id = child.key;
+      const data = child.val();
+      if (data.estado === "Impreso") impresos.push({ id, data });
+      else if (data.estado === "Liberado para impresión") historial.push({ id, data });
+      else pendientes.push({ id, data });
+    });
+
+    pendientes.sort((a, b) => new Date(b.data.fechaSometido) - new Date(a.data.fechaSometido));
+    historial.sort((a, b) => new Date(b.data.fechaLiberado) - new Date(a.data.fechaLiberado));
+    impresos.sort((a, b) => new Date(b.data.fechaImpreso) - new Date(a.data.fechaImpreso));
+
+    renderPanel(pendientes, "estudios-pendientes", "pendiente");
+    renderPanel(historial, "historial-estudios", "historial");
+    renderPanel(impresos, "impresos-estudios", "impreso");
+  });
+}
+
+function mostrarSoloPanel(idPanel) {
+  document.querySelectorAll("main > section").forEach(p => p.classList.add("hidden"));
+  document.getElementById(idPanel).classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  mostrarEstudios();
+
   document.getElementById("form-nuevo-estudio").addEventListener("submit", function (e) {
     e.preventDefault();
-
     const idEstudio = document.getElementById("estudio-id").value.trim();
     const nombre = document.getElementById("nombre").value.trim();
     const enlace = document.getElementById("enlace").value.trim();
     const encargado = document.getElementById("encargado").value.trim();
 
-    if (idEstudio.length !== 13 || !/^\d{13}$/.test(idEstudio)) {
-      alert("El ID del estudio debe tener exactamente 13 dígitos numéricos.");
+    if (!/^[0-9]{13}$/.test(idEstudio)) {
+      alert("El ID debe tener 13 dígitos numéricos.");
       return;
     }
 
-    if (nombre && enlace && encargado) {
-      const nuevoEstudio = {
-        idEstudio,
-        nombre,
-        enlace,
-        encargado,
-        estado: "Para Revisión",
-        correcciones: "",
-        fechaSometido: new Date().toISOString(),
-        fechaLiberado: null
-      };
+    const nuevo = {
+      idEstudio,
+      nombre,
+      enlace,
+      encargado,
+      estado: "Para Revisión",
+      correcciones: "",
+      fechaSometido: new Date().toISOString(),
+      fechaLiberado: null,
+      fechaImpreso: null
+    };
 
-      db.ref("estudios").push(nuevoEstudio, () => {
-        document.getElementById("form-nuevo-estudio").reset();
-        mostrarEstudios();
-      });
-    }
+    db.ref("estudios").push(nuevo).then(() => {
+      this.reset();
+      mostrarEstudios();
+    });
   });
 
-  mostrarEstudios();
+  document.getElementById("btnVerPendientes").addEventListener("click", () => mostrarSoloPanel("panel-pendientes"));
+  document.getElementById("btnVerHistorial").addEventListener("click", () => mostrarSoloPanel("panel-historial"));
+  document.getElementById("btnVerImpresos").addEventListener("click", () => mostrarSoloPanel("panel-impresos"));
+  document.getElementById("btnVerPublicar").addEventListener("click", () => mostrarSoloPanel("seccion-formulario"));
+  document.getElementById("btnVerBuscar").addEventListener("click", () => mostrarSoloPanel("busqueda-panel"));
 
-  // Búsqueda por ID
   document.getElementById("btnBuscarID").addEventListener("click", () => {
     const inputID = document.getElementById("buscar-id").value.trim();
     const mensaje = document.getElementById("mensajeBusqueda");
-    const historial = document.getElementById("historial-estudios");
-    const botonVerTodo = document.getElementById("btnVerTodo");
+    const contenedor = document.getElementById("historial-estudios");
+    const panel = document.getElementById("panel-historial");
 
-    if (inputID.length !== 13 || !/^\d{13}$/.test(inputID)) {
+    if (!/^[0-9]{13}$/.test(inputID)) {
       mensaje.textContent = "Ingresa un ID válido de 13 dígitos.";
-      historial.innerHTML = "";
-      botonVerTodo.style.display = "none";
+      contenedor.innerHTML = "";
       return;
     }
 
     db.ref("estudios").once("value", (snapshot) => {
       let encontrado = null;
-
       snapshot.forEach((child) => {
         const data = child.val();
         if (data.idEstudio === inputID) {
@@ -182,42 +195,22 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       });
 
-      historial.innerHTML = "";
+      contenedor.innerHTML = "";
       if (encontrado) {
         mensaje.textContent = "";
-        const div = document.createElement("div");
-        div.className = "card historial";
-        div.innerHTML = `
-          <div class="card-header">
-            <div class="card-title">${encontrado.data.nombre}</div>
-            <div class="${estadoBadge(encontrado.data.estado)}">${encontrado.data.estado}</div>
-          </div>
-          <div><a href="${encontrado.data.enlace}" target="_blank">Ver Estudio</a></div>
-          <div style="font-size: 12px; color: #666;">ID: ${encontrado.data.idEstudio}</div>
-          <div style="margin-top: 4px; font-size: 13px; color: #555;">Encargado: ${encontrado.data.encargado}</div>
-          <div class="fechas-info" style="margin-top: 8px; font-size: 13px; color: #444;">
-            <p>📅 Sometido: ${formatFecha(encontrado.data.fechaSometido)}</p>
-            ${encontrado.data.fechaLiberado
-              ? `<p>✅ Liberado: ${formatFecha(encontrado.data.fechaLiberado)}</p>` : ""}
-          </div>
-          <textarea rows="2" readonly style="background-color:#f0f0f0;">${encontrado.data.correcciones || ""}</textarea>
-        `;
-        historial.appendChild(div);
-        document.getElementById("panel-historial").classList.remove("hidden");
-
-        botonVerTodo.style.display = "inline-block";
+        mostrarSoloPanel("panel-historial");
+        renderPanel([encontrado], "historial-estudios", "historial");
+         document.getElementById("btnVerTodo").style.display = "inline-block";
       } else {
         mensaje.textContent = "No se encontró ningún estudio con ese ID.";
-        botonVerTodo.style.display = "none";
       }
     });
   });
 
-  // 🔁 Ver todo nuevamente
   document.getElementById("btnVerTodo").addEventListener("click", () => {
     document.getElementById("buscar-id").value = "";
     document.getElementById("mensajeBusqueda").textContent = "";
-    document.getElementById("btnVerTodo").style.display = "none";
     mostrarEstudios();
+    mostrarSoloPanel("panel-historial");
   });
 });
