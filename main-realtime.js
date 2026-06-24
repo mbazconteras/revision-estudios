@@ -33,7 +33,39 @@ function formatFecha(fechaISO) {
     minute: "2-digit"
   });
 }
+function prepararUrlDescarga(url) {
+  if (!url) return "#";
 
+  let enlace = String(url).trim();
+
+  // Intenta forzar descarga en enlaces tipo OneDrive/SharePoint cuando es posible
+  if (enlace.includes("onedrive") || enlace.includes("sharepoint") || enlace.includes("1drv.ms")) {
+    if (enlace.includes("?")) {
+      if (!enlace.includes("download=1")) enlace += "&download=1";
+    } else {
+      enlace += "?download=1";
+    }
+  }
+
+  return enlace;
+}
+
+function esUrlValida(url) {
+  return /^https?:\/\/.+/i.test(String(url || "").trim());
+}
+
+function copiarAlPortapapeles(texto) {
+  const valor = String(texto || "").trim();
+
+  if (!valor) {
+    alert("No hay enlace para copiar.");
+    return;
+  }
+
+  navigator.clipboard.writeText(valor)
+    .then(() => alert("Enlace copiado."))
+    .catch(() => alert("No se pudo copiar el enlace."));
+}
 function renderPanel(estudios, contenedorId, tipo) {
   const contenedor = document.getElementById(contenedorId);
   contenedor.innerHTML = "";
@@ -42,20 +74,50 @@ function renderPanel(estudios, contenedorId, tipo) {
     const div = document.createElement("div");
     div.className = `card ${tipo}`;
 
+    const enlaceActual = data.enlace || "";
+    const urlDescarga = prepararUrlDescarga(enlaceActual);
+
     div.innerHTML = `
       <div class="card-header">
-        <div class="card-title">${data.nombre}</div>
-        <div class="${estadoBadge(data.estado)}">${data.estado}</div>
+        <div class="card-title">${data.nombre || "Sin nombre"}</div>
+        <div class="${estadoBadge(data.estado)}">${data.estado || "Sin estado"}</div>
       </div>
-      <div><a href="${data.enlace}" target="_blank">Ver Estudio</a></div>
+
       <div style="font-size: 12px; color: #666;">ID: ${data.idEstudio || "–"}</div>
-      <div style="margin-top: 4px; font-size: 13px; color: #555;">Publicado por: ${data.encargado}</div>
+      <div style="margin-top: 4px; font-size: 13px; color: #555;">Publicado por: ${data.encargado || "–"}</div>
+
       <div class="fechas-info">
         <p>📅 Sometido: ${formatFecha(data.fechaSometido)}</p>
         ${data.fechaLiberado ? `<p>✅ Liberado: ${formatFecha(data.fechaLiberado)}</p>` : ""}
         ${data.fechaImpreso ? `<p>🖨️ Impreso: ${formatFecha(data.fechaImpreso)}</p>` : ""}
       </div>
+
+      <div class="documento-box">
+        <div class="documento-titulo">Documento</div>
+
+        <div class="documento-actions">
+          <a class="btn-doc" href="${enlaceActual}" target="_blank" rel="noopener noreferrer">👁️ Ver</a>
+          <a class="btn-doc" href="${urlDescarga}" target="_blank" rel="noopener noreferrer" download>⬇️ Descargar</a>
+          ${tipo !== "impreso" ? `<button type="button" class="btn-doc btn-cambiar-enlace">✏️ Cambiar enlace</button>` : ""}
+        </div>
+
+        ${
+          tipo !== "impreso"
+            ? `
+              <div class="editar-enlace-box hidden">
+                <input type="url" class="input-enlace" value="${enlaceActual}" placeholder="Pega aquí el nuevo enlace del documento" />
+                <div class="editar-enlace-actions">
+                  <button type="button" class="btn-guardar-enlace">Guardar enlace</button>
+                  <button type="button" class="btn-cancelar-enlace">Cancelar</button>
+                </div>
+              </div>
+            `
+            : ""
+        }
+      </div>
+
       <textarea rows="2" placeholder="Correcciones...">${data.correcciones || ""}</textarea>
+
       <div class="card-actions">
         <div>
           <select>
@@ -73,15 +135,47 @@ function renderPanel(estudios, contenedorId, tipo) {
     const textarea = div.querySelector("textarea");
     const btnActualizar = div.querySelector(".boton-actualizar");
     const btnEliminar = div.querySelector(".boton-eliminar");
+    const btnCambiarEnlace = div.querySelector(".btn-cambiar-enlace");
+    const editarEnlaceBox = div.querySelector(".editar-enlace-box");
+    const inputEnlace = div.querySelector(".input-enlace");
+    const btnGuardarEnlace = div.querySelector(".btn-guardar-enlace");
+    const btnCancelarEnlace = div.querySelector(".btn-cancelar-enlace");
 
     if (tipo === "impreso") {
       div.querySelector(".card-actions").remove();
       textarea.setAttribute("readonly", "true");
       textarea.style.backgroundColor = "#f0f0f0";
     } else {
+      btnCambiarEnlace.addEventListener("click", () => {
+        editarEnlaceBox.classList.remove("hidden");
+        inputEnlace.focus();
+      });
+
+      btnCancelarEnlace.addEventListener("click", () => {
+        inputEnlace.value = data.enlace || "";
+        editarEnlaceBox.classList.add("hidden");
+      });
+
+      btnGuardarEnlace.addEventListener("click", () => {
+        const nuevoEnlace = inputEnlace.value.trim();
+
+        if (!esUrlValida(nuevoEnlace)) {
+          alert("El enlace debe iniciar con http:// o https://");
+          return;
+        }
+
+        db.ref("estudios/" + id).update({
+          enlace: nuevoEnlace
+        }).then(() => {
+          alert("Enlace actualizado.");
+          mostrarEstudios();
+        });
+      });
+
       btnActualizar.addEventListener("click", () => {
         const nuevoEstado = div.querySelector("select").value;
         const nuevasCorrecciones = textarea.value;
+
         const actualizaciones = {
           estado: nuevoEstado,
           correcciones: nuevasCorrecciones
@@ -90,6 +184,7 @@ function renderPanel(estudios, contenedorId, tipo) {
         if (nuevoEstado === "Liberado para impresión" && !data.fechaLiberado) {
           actualizaciones.fechaLiberado = new Date().toISOString();
         }
+
         if (nuevoEstado === "Impreso" && !data.fechaImpreso) {
           actualizaciones.fechaImpreso = new Date().toISOString();
         }
